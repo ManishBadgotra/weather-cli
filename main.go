@@ -17,6 +17,7 @@ import (
 var (
 	ApiKey  string
 	BaseURL string
+	Units   string
 )
 
 func init() {
@@ -41,12 +42,21 @@ func main() {
 		log.Fatal("Api key did not load\n")
 	}
 
+	Units = os.Getenv("units")
+	if Units == "" {
+		Units = "metric"
+	}
+
 	for t := range time.Tick(time.Second) {
 
 		timeString := t.String()
-		url := fmt.Sprintf("%v?lat=28.611665&lon=76.978678&units=metric&date=%v&appid=%v", BaseURL, timeString[:11], ApiKey)
+		url := fmt.Sprintf("%v?lat=28.611665&lon=76.978678&units=%v&date=%v&appid=%v", BaseURL, Units, timeString[:11], ApiKey)
 
-		httpResp, err := http.Get(url)
+		client := http.Client{
+			Timeout: time.Minute * 2,
+		}
+
+		httpResp, err := client.Get(url)
 		if err != nil {
 			fmt.Println("Error: ", err, " while calling an weather api")
 			return
